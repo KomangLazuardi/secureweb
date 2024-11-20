@@ -5,6 +5,7 @@ const csurf = require("csurf");
 const helmet = require("helmet");
 const sqlite3 = require("sqlite3").verbose();
 const xss = require("xss");
+const Joi = require("joi"); // Menggunakan Joi untuk validasi
 
 const app = express();
 const db = new sqlite3.Database("db.sqlite");
@@ -34,6 +35,12 @@ db.serialize(() => {
   `);
 });
 
+// Validasi Joi
+const userSchema = Joi.object({
+  username: Joi.string().min(3).max(30).required().alphanum(),
+  password: Joi.string().min(6).required(),
+});
+
 // Routes
 app.get("/", (req, res) => {
   res.redirect("/sign-in");
@@ -41,19 +48,26 @@ app.get("/", (req, res) => {
 
 // Sign-in form
 app.get("/sign-in", (req, res) => {
-  res.render("sign-in", { csrfToken: req.csrfToken(), error: null });
+  res.sendFile(__dirname + "/public/sign-in.html"); // Serve HTML form
 });
 
 app.post("/sign-in", (req, res) => {
   const { username, password } = req.body;
   const sanitizedUsername = xss(username);
 
+  // Validasi dengan Joi
+  const { error } = userSchema.validate({ username: sanitizedUsername, password });
+
+  if (error) {
+    return res.send("Error: " + error.details[0].message); // Menampilkan error validasi
+  }
+
   db.get(
     "SELECT * FROM users WHERE username = ? AND password = ?",
     [sanitizedUsername, password],
     (err, user) => {
       if (err || !user) {
-        res.render("sign-in", { csrfToken: req.csrfToken(), error: "Invalid credentials" });
+        return res.send("Invalid credentials");
       } else {
         req.session.userId = user.id;
         res.redirect("/transfer");
@@ -64,19 +78,26 @@ app.post("/sign-in", (req, res) => {
 
 // Sign-up form
 app.get("/sign-up", (req, res) => {
-  res.render("sign-up", { csrfToken: req.csrfToken(), error: null });
+  res.sendFile(__dirname + "/public/sign-up.html"); // Serve HTML form
 });
 
 app.post("/sign-up", (req, res) => {
   const { username, password } = req.body;
   const sanitizedUsername = xss(username);
 
+  // Validasi dengan Joi
+  const { error } = userSchema.validate({ username: sanitizedUsername, password });
+
+  if (error) {
+    return res.send("Error: " + error.details[0].message); // Menampilkan error validasi
+  }
+
   db.run(
     "INSERT INTO users (username, password) VALUES (?, ?)",
     [sanitizedUsername, password],
     (err) => {
       if (err) {
-        res.render("sign-up", { csrfToken: req.csrfToken(), error: "Username already exists" });
+        return res.send("Username already exists");
       } else {
         res.redirect("/sign-in");
       }
@@ -87,7 +108,7 @@ app.post("/sign-up", (req, res) => {
 // Transfer form
 app.get("/transfer", (req, res) => {
   if (!req.session.userId) return res.redirect("/sign-in");
-  res.render("transfer", { csrfToken: req.csrfToken(), error: null });
+  res.sendFile(__dirname + "/public/transfer.html"); // Serve HTML form
 });
 
 app.post("/transfer", (req, res) => {
@@ -98,20 +119,11 @@ app.post("/transfer", (req, res) => {
 
   // Log transfer (or process it in real applications)
   console.log(`Transfer ${amount} to ${sanitizedRecipient}`);
-  res.render("transfer", {
-    csrfToken: req.csrfToken(),
-    error: `Transfer to ${sanitizedRecipient} successful`,
-  });
+  res.send(`Transfer to ${sanitizedRecipient} successful`);
 });
 
-// Server setup
 // Server setup
 const PORT = 3000;
-app.listen(PORT, (err) => {
-  if (err) {
-    console.error("Error starting server:", err.message);
-  } else {
-    console.log(`Localhost running at port ${PORT}`);
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
