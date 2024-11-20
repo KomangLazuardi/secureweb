@@ -126,10 +126,10 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-<<<<<<< HEAD
-=======
 
 
 
 // tes git 
->>>>>>> 5c8c96579e2500bca779693ef3e20eaa982373f0
+
+
+// ini zaki yg test
