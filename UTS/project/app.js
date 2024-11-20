@@ -5,15 +5,14 @@ const csurf = require("csurf");
 const helmet = require("helmet");
 const sqlite3 = require("sqlite3").verbose();
 const xss = require("xss");
-const Joi = require("joi"); // Menggunakan Joi untuk validasi
+const Joi = require("joi"); // Library untuk validasi input
 
 const app = express();
 const db = new sqlite3.Database("db.sqlite");
 
 // Middleware
-app.set("view engine", "ejs");
-app.use(express.static("public"));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public")); // Untuk melayani file HTML dan aset statis
+app.use(bodyParser.urlencoded({ extended: true })); // Parsing form data
 app.use(
   session({
     secret: "your-secret-key",
@@ -21,8 +20,8 @@ app.use(
     saveUninitialized: false,
   })
 );
-app.use(csurf());
-app.use(helmet());
+app.use(csurf()); // Perlindungan CSRF
+app.use(helmet()); // Perlindungan HTTP headers
 
 // Database setup
 db.serialize(() => {
@@ -43,33 +42,33 @@ const userSchema = Joi.object({
 
 // Routes
 app.get("/", (req, res) => {
-  res.redirect("/sign-in");
+  res.redirect("/sign-in"); // Mengarahkan pengguna ke halaman sign-in
 });
 
 // Sign-in form
 app.get("/sign-in", (req, res) => {
-  res.sendFile(__dirname + "/public/sign-in.html"); // Serve HTML form
+  res.sendFile(__dirname + "/public/sign-in.html"); // Menyajikan file HTML untuk sign-in
 });
 
 app.post("/sign-in", (req, res) => {
   const { username, password } = req.body;
-  const sanitizedUsername = xss(username);
+  const sanitizedUsername = xss(username); // Membersihkan input untuk mencegah XSS
 
   // Validasi dengan Joi
   const { error } = userSchema.validate({ username: sanitizedUsername, password });
-
   if (error) {
-    return res.send("Error: " + error.details[0].message); // Menampilkan error validasi
+    return res.send("Error: " + error.details[0].message); // Menampilkan pesan error validasi
   }
 
+  // Verifikasi pengguna di database
   db.get(
     "SELECT * FROM users WHERE username = ? AND password = ?",
     [sanitizedUsername, password],
     (err, user) => {
       if (err || !user) {
-        return res.send("Invalid credentials");
+        return res.send("Invalid credentials"); // Tanggapan untuk kredensial yang salah
       } else {
-        req.session.userId = user.id;
+        req.session.userId = user.id; // Simpan sesi pengguna
         res.redirect("/transfer");
       }
     }
@@ -78,28 +77,28 @@ app.post("/sign-in", (req, res) => {
 
 // Sign-up form
 app.get("/sign-up", (req, res) => {
-  res.sendFile(__dirname + "/public/sign-up.html"); // Serve HTML form
+  res.sendFile(__dirname + "/public/sign-up.html"); // Menyajikan file HTML untuk sign-up
 });
 
 app.post("/sign-up", (req, res) => {
   const { username, password } = req.body;
-  const sanitizedUsername = xss(username);
+  const sanitizedUsername = xss(username); // Membersihkan input untuk mencegah XSS
 
   // Validasi dengan Joi
   const { error } = userSchema.validate({ username: sanitizedUsername, password });
-
   if (error) {
-    return res.send("Error: " + error.details[0].message); // Menampilkan error validasi
+    return res.send("Error: " + error.details[0].message); // Menampilkan pesan error validasi
   }
 
+  // Tambahkan pengguna baru ke database
   db.run(
     "INSERT INTO users (username, password) VALUES (?, ?)",
     [sanitizedUsername, password],
     (err) => {
       if (err) {
-        return res.send("Username already exists");
+        return res.send("Username already exists"); // Pesan error jika username sudah terdaftar
       } else {
-        res.redirect("/sign-in");
+        res.redirect("/sign-in"); // Redirect ke halaman sign-in
       }
     }
   );
@@ -107,17 +106,17 @@ app.post("/sign-up", (req, res) => {
 
 // Transfer form
 app.get("/transfer", (req, res) => {
-  if (!req.session.userId) return res.redirect("/sign-in");
-  res.sendFile(__dirname + "/public/transfer.html"); // Serve HTML form
+  if (!req.session.userId) return res.redirect("/sign-in"); // Pastikan pengguna telah sign-in
+  res.sendFile(__dirname + "/public/transfer.html"); // Menyajikan file HTML untuk transfer
 });
 
 app.post("/transfer", (req, res) => {
-  if (!req.session.userId) return res.redirect("/sign-in");
+  if (!req.session.userId) return res.redirect("/sign-in"); // Pastikan pengguna telah sign-in
 
   const { recipient, amount } = req.body;
-  const sanitizedRecipient = xss(recipient);
+  const sanitizedRecipient = xss(recipient); // Membersihkan input untuk mencegah XSS
 
-  // Log transfer (or process it in real applications)
+  // Log transfer (sebagai simulasi transfer)
   console.log(`Transfer ${amount} to ${sanitizedRecipient}`);
   res.send(`Transfer to ${sanitizedRecipient} successful`);
 });
@@ -127,10 +126,3 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-<<<<<<< HEAD
-=======
-
-
-
-// tes git 
->>>>>>> fd5d2b5f206570aa47d7808515c5ed34e5b03eca
