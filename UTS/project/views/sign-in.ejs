@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign In</title>
+</head>
+<body>
+  <h1>Sign In</h1>
+  <form method="POST" action="/sign-in">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>Username:</label>
+    <input type="text" name="username" required>
+    <label>Password:</label>
+    <input type="password" name="password" required>
+    <button type="submit">Sign In</button>
+  </form>
+  <p><a href="/sign-up">Sign Up</a></p>
+  <% if (error) { %><p style="color: red;"><%= error %></p><% } %>
+</body>
+</html>
